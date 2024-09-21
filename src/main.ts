@@ -1,4 +1,4 @@
-import { label_video } from "./label.js";
+import { labelGif } from './label.js'
 import fs from "node:fs";
 import { Jetstream } from "@skyware/jetstream";
 
@@ -27,12 +27,28 @@ jetstream.on("error", (err) => console.error(err));
 jetstream.on("close", () => clearInterval(intervalID));
 
 jetstream.onCreate("app.bsky.feed.post", (event) => {
-  if (
-    event.commit.record.embed?.$type === "app.bsky.embed.video" ||
-    (event.commit.record.embed?.$type === "app.bsky.embed.recordWithMedia" &&
-      event.commit.record.embed.media.$type === "app.bsky.embed.video")
-  )
-    label_video(`at://${event.did}/app.bsky.feed.post/${event.commit.rkey}`);
+  const embed = event.commit.record.embed;
+
+  if (!embed) return
+
+  let externalEmbed
+
+  if (embed.$type === "app.bsky.embed.external" && isGifUri(embed.external.uri)) {
+    externalEmbed = embed
+  } else if (embed.$type === 'app.bsky.embed.recordWithMedia' && embed.media.$type === 'app.bsky.embed.external' && isGifUri(embed.media.external.uri)) {
+    externalEmbed = embed.media
+  }
+
+  if (externalEmbed) {
+    const uri = `at://${event.did}/${event.commit.collection}/${event.commit.rkey}`;
+    if (!event.commit.record.text || event.commit.record.text !== '') {
+      // Disable for now because we need to queue
+      // labelGifNoText(event.commit.)
+    }
+    labelGif(uri);
+  }
 });
+
+const isGifUri = (uri: string) => uri.includes('media.tenor.com') && uri.includes('hh=') && uri.includes('ww=');
 
 jetstream.start();

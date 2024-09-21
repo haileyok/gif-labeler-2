@@ -27,7 +27,11 @@ jetstream.on("error", (err) => console.error(err));
 jetstream.on("close", () => clearInterval(intervalID));
 
 jetstream.onCreate("app.bsky.feed.post", (event) => {
-  if (event.commit.record.embed?.$type === "app.bsky.embed.video")
+  if (
+    event.commit.record.embed?.$type === "app.bsky.embed.video" ||
+    (event.commit.record.embed?.$type === "app.bsky.embed.recordWithMedia" &&
+      event.commit.record.embed.media.$type === "app.bsky.embed.video")
+  )
     label_video(`at://${event.did}/app.bsky.feed.post/${event.commit.rkey}`);
 });
 

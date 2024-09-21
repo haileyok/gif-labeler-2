@@ -1,12 +1,14 @@
 import { labelGif } from './label.js'
 import fs from "node:fs";
 import { Jetstream } from "@skyware/jetstream";
+import {JETSTREAM_ENDPOINT} from './constants.js'
 
 let intervalID: NodeJS.Timeout;
 const cursorFile = fs.readFileSync("cursor.txt", "utf8");
 if (cursorFile) console.log(`Initiate firehose at cursor ${cursorFile}`);
 
 const jetstream = new Jetstream({
+  endpoint: JETSTREAM_ENDPOINT,
   wantedCollections: ["app.bsky.feed.post"],
   cursor: cursorFile ?? 0,
 });
